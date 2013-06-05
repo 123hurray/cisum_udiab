@@ -3,13 +3,22 @@ cisum_udiab
 
 This music downloader
 
+## 依赖库
+
+* requests
+* eyed3
+
+## 已解决
+
+* ID3信息不完整问题
+* 存在于file.qianqian.com的音乐不能被下载问题
+* 文件路径无法创建问题
+
 ## TODO
 
-* 解决配置文件编码问题
-
 * 按歌名下载整合进主程序
-
 * 按歌名下载时先选择完所有版本后再下载
+* 批量修改ID3工具
 
 ## 配置文件格式
 
