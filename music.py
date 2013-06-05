@@ -2,8 +2,10 @@
 import requests
 import os, sys
 from urllib import urlretrieve
+from os.path import getsize
 import socket
 import re
+
 
 timeout = 60
 socket.setdefaulttimeout(timeout)
@@ -38,7 +40,7 @@ def download(item):
  
         print 'Fetching song list...'
         r = requests.get(songlist_api % artist_id)
-        reg = re.compile(r'[\/\\\:\*\?\"<>|]', re.IGNORECASE)
+        reg = re.compile(ur'[\/\\\:\*\?\"<>|]', re.IGNORECASE)
         for song in r.json()['songlist']: 
             song_id = song['song_id']
             album_title = song['album_title']
@@ -63,24 +65,33 @@ def download(item):
                     if not os.path.exists(song_dir):
                         os.mkdir(song_dir)
             
+            title = reg.sub(' ', title)
             music_name = song_dir + '/' + artist_name + ' - ' + title
-            music_name = reg.sub(' ', music_name)
             if os.path.exists(music_name + '.mp3') and os.path.exists(music_name + '.lrc'):
             	continue
             r = requests.get(song_api % song_id)
+            # resourceType 不为零表示不在百度音乐服务器，此时若下载则无法得到正确歌曲
+            if int(r.json()['data']['songList'][0]['resourceType']) <> 0:
+                continue
             song_link = r.json()['data']['songList'][0]['showLink']
             lrc_link = 'http://music.baidu.com' + r.json()['data']['songList'][0]['lrcLink'] 
+            size = int(r.json()['data']['songList'][0]['size'])
             for i in range(3):
                 print 'Downloading ' , album_title, title 
                 sys.stdout.flush()
                 try:
                     if not os.path.exists(music_name + '.mp3'):
                         urlretrieve(song_link, music_name + '.mp3', cbk)
+                        if getsize(music_name + '.mp3') <> size:
+                        	raise IOError
                     if not os.path.exists(music_name + '.lrc'):
                         urlretrieve(lrc_link, music_name + '.lrc', cbk)
                 except IOError:
                     print 'Fail               '
-                    # TODO 删除文件
+                    if os.path.exists(music_name + '.mp3'):
+                        os.remove(music_name + '.mp3')
+                    if os.path.exists(music_name + '.lrc'):
+                        os.remove(music_name + '.lrc')
                 else:
                     print 'OK                 '
                     break
