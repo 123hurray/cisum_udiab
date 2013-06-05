@@ -5,8 +5,7 @@ from urllib import urlretrieve
 from os.path import getsize
 import socket
 import re
-
-
+import eyed3
 timeout = 60
 socket.setdefaulttimeout(timeout)
 def cbk(a, b, c):  
@@ -68,22 +67,24 @@ def download(item):
             title = reg.sub(' ', title)
             music_name = song_dir + '/' + artist_name + ' - ' + title
             if os.path.exists(music_name + '.mp3') and os.path.exists(music_name + '.lrc'):
-            	continue
-            r = requests.get(song_api % song_id)
-            # resourceType 不为零表示不在百度音乐服务器，此时若下载则无法得到正确歌曲
-            if int(r.json()['data']['songList'][0]['resourceType']) <> 0:
                 continue
-            song_link = r.json()['data']['songList'][0]['showLink']
+            r = requests.get(song_api % song_id)
+            # resourceType 为0表示音乐在zhangmenshiting.baidu.com 为2表示在file.qianqian.com
+            if int(r.json()['data']['songList'][0]['resourceType']) == 2:
+                song_link = r.json()['data']['songList'][0]['songLink'] + '?xcode=' + r.json()['data']['xcode']
+            else:
+                song_link = r.json()['data']['songList'][0]['showLink']
             lrc_link = 'http://music.baidu.com' + r.json()['data']['songList'][0]['lrcLink'] 
             size = int(r.json()['data']['songList'][0]['size'])
             for i in range(3):
-                print 'Downloading ' , album_title, title 
+                print 'Downloading ' , album_title, title
                 sys.stdout.flush()
                 try:
                     if not os.path.exists(music_name + '.mp3'):
                         urlretrieve(song_link, music_name + '.mp3', cbk)
                         if getsize(music_name + '.mp3') <> size:
-                        	raise IOError
+                            raise IOError 
+
                     if not os.path.exists(music_name + '.lrc'):
                         urlretrieve(lrc_link, music_name + '.lrc', cbk)
                 except IOError:
@@ -96,6 +97,11 @@ def download(item):
                     print 'OK                 '
                     break
             
+            audiofile = eyed3.load(music_name + '.mp3')
+            audiofile.tag.artist = artist_name
+            audiofile.tag.album = album_title
+            audiofile.tag.title = title
+            audiofile.tag.save(encoding='utf-8', version=eyed3.id3.tag.ID3_V2_3)
     
     else:
         print u'没有找到歌手'
