@@ -1,30 +1,27 @@
 cisum_udiab
 ===========
 
-This music downloader
+A tool written in Python to batch download Baidu music
 
-## 依赖库
+## Dependencies
 
 * requests
 * eyed3
 
-## 已解决
+## Usage
 
-* ID3信息不完整问题
-* 存在于file.qianqian.com的音乐不能被下载问题
-* 文件路径无法创建问题
+* Check that you have installed all dependent libs
+* Create config.txt in the root path
+* Run main.py
+* When download finish, you should find all mp3 file in the music folder
 
 ## TODO
 
-* 按歌名下载整合进主程序
-* 按歌名下载时先选择完所有版本后再下载
-* 批量修改ID3工具
+* Select bitrate based on the configuration file
+* Formatting ID3 information
 
-## 配置文件格式
 
-歌手   类型   列表
-
-## config.txt示例
+## Demo of config.txt
 
 ```
 林俊杰   1   *
@@ -32,10 +29,13 @@ This music downloader
 梁静茹   2   La La La La$直觉
 ```
 
-## 说明
+## Configuration file format
 
-- 类型为1表示按专辑下载
-- 类型为2表示按歌曲下载
-- 列表为*表示下载所有歌曲
-- 歌手，类型，列表间以3个空格分割
-- 列表项之间以$分割
+* A recorder should be "Singer   DownloadType   DownloadList" format. Remember that there are three spaces between two fields.
+* Download type: 1 means album title, 2 means song's name
+* Download list: Album titles or songs' names depends on download type. * means all songs
+* Download list should be split by $
+
+## Copyright
+
+Only for **learning** and **testing** and SHALL NOT be used for commercial purposes. All copyright of MP3 files belong to Baidu Inc. and their original authors.
