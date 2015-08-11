@@ -70,12 +70,18 @@ def download(item):
                 continue
             r = requests.get(song_api % song_id)
             # resourceType 为0表示音乐在zhangmenshiting.baidu.com 为2表示在file.qianqian.com
-            if int(r.json()['data']['songList'][0]['resourceType']) == 2:
-                song_link = r.json()['data']['songList'][0]['songLink'] + '?xcode=' + r.json()['data']['xcode']
-            else:
-                song_link = r.json()['data']['songList'][0]['showLink']
-            lrc_link = 'http://music.baidu.com' + r.json()['data']['songList'][0]['lrcLink'] 
-            size = int(r.json()['data']['songList'][0]['size'])
+            songLink = ""
+            size = 0
+            try:
+                if int(r.json()['data']['songList'][0]['resourceType']) == 2:
+                    song_link = r.json()['data']['songList'][0]['songLink'] + '?xcode=' + r.json()['data']['xcode']
+                else:
+                    song_link = r.json()['data']['songList'][0]['showLink']
+                lrc_link = 'http://music.baidu.com' + r.json()['data']['songList'][0]['lrcLink'] 
+                size = int(r.json()['data']['songList'][0]['size'])
+            except:
+                print u"解析错误"
+                continue
             for i in range(3):
                 print 'Downloading ' , album_title, title
                 sys.stdout.flush()
@@ -96,12 +102,14 @@ def download(item):
                 else:
                     print 'OK                 '
                     break
-            
-            audiofile = eyed3.load(music_name + '.mp3')
-            audiofile.tag.artist = artist_name
-            audiofile.tag.album = album_title
-            audiofile.tag.title = title
-            audiofile.tag.save(encoding='utf-8', version=eyed3.id3.tag.ID3_V2_3)
+            try:
+                audiofile = eyed3.load(music_name + '.mp3')
+                audiofile.tag.artist = artist_name
+                audiofile.tag.album = album_title
+                audiofile.tag.title = title
+                audiofile.tag.save(encoding='utf-8', version=eyed3.id3.tag.ID3_V2_3)
+            except:
+                print music_name + u"，文件不存在"
     
     else:
         print u'没有找到歌手'
